@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
@@ -90,6 +91,7 @@ fun MainScreen() {
     var opacity by remember { mutableFloatStateOf(0.5f) }
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
+    var showControls by remember { mutableStateOf(true) }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -100,7 +102,13 @@ fun MainScreen() {
     }
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(Unit) {
+                    detectTapGestures { showControls = !showControls }
+                }
+        ) {
             // Layer 1: Camera Preview
             CameraPreview(modifier = Modifier.fillMaxSize())
 
@@ -129,21 +137,25 @@ fun MainScreen() {
             }
 
             // Layer 3: Controls
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(innerPadding)
-                    .padding(16.dp)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Slider(
-                    value = opacity,
-                    onValueChange = { opacity = it },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp)
-                )
-                Button(onClick = { imagePickerLauncher.launch("image/*") }) {
-                    Text("Import Image")
+            if (showControls) {
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(innerPadding)
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Slider(
+                        value = opacity,
+                        onValueChange = { opacity = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 32.dp)
+                    )
+                    Button(onClick = { imagePickerLauncher.launch("image/*") }) {
+                        Text("Import Image")
+                    }
                 }
             }
         }
