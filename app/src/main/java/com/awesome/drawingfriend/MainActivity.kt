@@ -26,13 +26,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -50,6 +53,8 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import coil.compose.AsyncImage
+import com.awesome.drawingfriend.ui.theme.DarkBlue
+import com.awesome.drawingfriend.ui.theme.SecondaryBlue
 import com.awesome.drawingfriend.ui.theme.DrawingFriendTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -287,9 +292,20 @@ fun MainScreen() {
                         onValueChange = { opacity = it },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 32.dp)
+                            .padding(horizontal = 32.dp),
+                        colors = SliderDefaults.colors(
+                            thumbColor = DarkBlue,
+                            activeTrackColor = DarkBlue,
+                            inactiveTrackColor = SecondaryBlue
+                        )
                     )
-                    Button(onClick = { imagePickerLauncher.launch(arrayOf("image/*")) }) {
+                    Button(
+                        onClick = { imagePickerLauncher.launch(arrayOf("image/*")) },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = DarkBlue,
+                            contentColor = Color.White
+                        )
+                    ) {
                         Text("Import Image")
                     }
                 }
