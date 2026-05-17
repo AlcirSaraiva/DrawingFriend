@@ -45,6 +45,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -56,15 +59,54 @@ import coil.compose.AsyncImage
 import com.awesome.drawingfriend.ui.theme.DarkBlue
 import com.awesome.drawingfriend.ui.theme.SecondaryBlue
 import com.awesome.drawingfriend.ui.theme.DrawingFriendTheme
+import com.google.android.gms.ads.MobileAds
+import com.google.android.ump.ConsentInformation
+import com.google.android.ump.ConsentRequestParameters
+import com.google.android.ump.UserMessagingPlatform
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 class MainActivity : ComponentActivity() {
+    private lateinit var consentInformation: ConsentInformation
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        consentInformation = UserMessagingPlatform.getConsentInformation(this)
+
+        val params = ConsentRequestParameters.Builder()
+            .setTagForUnderAgeOfConsent(false)
+            .build()
+
+        consentInformation.requestConsentInfoUpdate(
+            this,
+            params,
+            {
+                UserMessagingPlatform.loadAndShowConsentFormIfRequired(this) { loadAndShowError ->
+                    if (loadAndShowError != null) {
+                        android.util.Log.e("DrawingFriend", "Consent gathering failed: ${loadAndShowError.errorCode}: ${loadAndShowError.message}")
+                    }
+
+                    if (consentInformation.canRequestAds()) {
+                        initializeMobileAdsSdk()
+                    }
+                }
+            },
+            { requestConsentError ->
+                android.util.Log.e("DrawingFriend", "Consent info update failed: ${requestConsentError.errorCode}: ${requestConsentError.message}")
+            }
+        )
+
+        if (consentInformation.canRequestAds()) {
+            initializeMobileAdsSdk()
+        }
+
         setContent {
             DrawingFriendTheme {
                 val context = LocalContext.current
@@ -91,6 +133,17 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    private fun initializeMobileAdsSdk() {
+        if (isMobileAdsSdkInitialized.getAndSet(true)) {
+            return
+        }
+        CoroutineScope(Dispatchers.IO).launch {
+            MobileAds.initialize(this@MainActivity) {}
+        }
+    }
+
+    private val isMobileAdsSdkInitialized = java.util.concurrent.atomic.AtomicBoolean(false)
 }
 
 @Composable
@@ -244,6 +297,29 @@ fun MainScreen() {
         ) {
             // Layer 1: Camera Preview
             CameraPreview(modifier = Modifier.fillMaxSize())
+
+            // AdMob Banner
+            AndroidView(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter)
+                    .padding(innerPadding),
+                factory = { context ->
+                    AdView(context).apply {
+                        adUnitId = "ca-app-pub-8261651469212664/8589400056"
+                        // "ca-app-pub-3940256099942544/9214589741" test id
+                        // "ca-app-pub-8261651469212664/8589400056"
+                        setAdSize(AdSize.getLargeAnchoredAdaptiveBannerAdSize(context, 360))
+                        loadAd(AdRequest.Builder().build())
+                    }
+                },
+                update = { adView ->
+                    // View is updated
+                },
+                onRelease = { adView ->
+                    adView.destroy()
+                }
+            )
 
             // Layer 2: Imported Image
             importedImageUri?.let { uri ->

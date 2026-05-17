@@ -15,8 +15,8 @@ android {
         applicationId = "com.awesome.drawingfriend"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 101
+        versionName = "1.01"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -40,6 +40,8 @@ android {
 }
 
 dependencies {
+    implementation(libs.play.services.ads)
+    implementation(libs.user.messaging.platform)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
