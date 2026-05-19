@@ -306,9 +306,15 @@ fun MainScreen() {
                     .padding(innerPadding),
                 factory = { context ->
                     AdView(context).apply {
-                        adUnitId = "ca-app-pub-8261651469212664/8589400056"
-                        // "ca-app-pub-3940256099942544/9214589741" test id
-                        // "ca-app-pub-8261651469212664/8589400056"
+                        adUnitId = AdsConfig.BANNER_AD_UNIT_ID
+                        /*
+                        //AdsConfig.kt
+                        package com.awesome.drawingfriend
+
+                        object AdsConfig {
+                            const val BANNER_AD_UNIT_ID = "ca-app-pub-XXXXXXXX..."
+                        }
+                         */
                         setAdSize(AdSize.getLargeAnchoredAdaptiveBannerAdSize(context, 360))
                         loadAd(AdRequest.Builder().build())
                     }
